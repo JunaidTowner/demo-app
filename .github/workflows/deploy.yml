@@ -1,0 +1,40 @@
+name: Build and Deploy Next.js (Standalone) to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js (standalone)
+        run: npm run build
+
+      - name: Prepare deployment folder
+        run: |
+          mkdir deploy
+          cp -r .next/standalone/* deploy/
+          cp -r .next/static deploy/.next/
+          cp -r public deploy/
+          cp package.json deploy/
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: demo-app-33434
+          package: deploy
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2917B4F747BF4839BFAB1EE50881459F }}
